@@ -157,6 +157,7 @@ static struct {
     __sput.out = stdout;                                                       \
     __sput.time.start = time(NULL);                                            \
     __sput.initialized = SPUT_INITIALIZED;                                     \
+    fprintf(__sput.out, "TAP version 13\n");                                   \
   } while (0)
 
 #define sput_leave_suite()                                                     \
@@ -195,7 +196,6 @@ static struct {
     __sput.suite.name = _name ? _name : SPUT_DEFAULT_SUITE_NAME;               \
                                                                                \
     __sput.suite.nr = ++__sput.overall.suites;                                 \
-    fprintf(__sput.out, "TAP version 13\n");                                   \
   } while (0)
 
 #define sput_finish_testing()                                                  \
