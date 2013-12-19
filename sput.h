@@ -124,13 +124,16 @@ static struct {
                                                                                \
     __sput.suite.nok++;                                                        \
                                                                                \
-    fprintf(__sput.out, "[%lu:%lu]  %s:#%lu  \"%s\"  FAIL\n"                   \
-                        "!    Type:      %s\n"                                 \
-                        "!    Condition: %s\n"                                 \
-                        "!    Line:      %lu\n",                               \
-            __sput.suite.nr, __sput.suite.checks, __sput.test.name,            \
-            __sput.test.nr, __sput.check.name, __sput.check.type,              \
-            __sput.check.cond, __sput.check.line);                             \
+    fprintf(__sput.out, "not ok %lu - %s \n"                                   \
+                        "  ---\n"                                              \
+                        "  suite: '%s'\n"                                      \
+                        "  severity: %s\n"                                     \
+                        "  data:\n"                                            \
+                        "    condition: '%s'\n"                                \
+                        "    line: '%lu'\n"                                    \
+                        "  ...\n",                                             \
+            __sput.test.nr, __sput.check.name, __sput.test.name,               \
+            __sput.check.type, __sput.check.cond, __sput.check.line);          \
   }
 
 #define _sput_check_succeeded()                                                \
@@ -140,9 +143,7 @@ static struct {
                                                                                \
     __sput.suite.ok++;                                                         \
                                                                                \
-    fprintf(__sput.out, "[%lu:%lu]  %s:#%lu  \"%s\"  pass\n", __sput.suite.nr, \
-            __sput.suite.checks, __sput.test.name, __sput.test.nr,             \
-            __sput.check.name);                                                \
+    fprintf(__sput.out, "ok %lu - %s\n", __sput.test.nr, __sput.check.name);   \
   }
 
 /* =======================================================================
@@ -169,7 +170,8 @@ static struct {
                 ? (float)((__sput.suite.nok * 100.0) / __sput.suite.checks)    \
                 : 0.0f;                                                        \
                                                                                \
-    fprintf(__sput.out, "\n--> %lu check(s), %lu ok, %lu failed (%.2f%%)\n",   \
+    fprintf(__sput.out,                                                        \
+            "# suite: %lu check(s), %lu ok, %lu failed (%.2f%%)\n",            \
             __sput.suite.checks, __sput.suite.ok, __sput.suite.nok, failp);    \
                                                                                \
     __sput.overall.checks += __sput.suite.checks;                              \
@@ -193,9 +195,7 @@ static struct {
     __sput.suite.name = _name ? _name : SPUT_DEFAULT_SUITE_NAME;               \
                                                                                \
     __sput.suite.nr = ++__sput.overall.suites;                                 \
-                                                                               \
-    fprintf(__sput.out, "\n== Entering suite #%lu, \"%s\" ==\n\n",             \
-            __sput.suite.nr, __sput.suite.name);                               \
+    fprintf(__sput.out, "TAP version 13\n");                                   \
   } while (0)
 
 #define sput_finish_testing()                                                  \
@@ -215,15 +215,13 @@ static struct {
                                                                                \
     __sput.time.end = time(NULL);                                              \
                                                                                \
-    fprintf(                                                                   \
-        __sput.out, "\n==> %lu check(s) in %lu suite(s) finished after %.2f "  \
-                    "second(s),\n"                                             \
-                    "    %lu succeeded, %lu failed (%.2f%%)\n"                 \
-                    "\n[%s]\n",                                                \
-        __sput.overall.checks, __sput.overall.suites,                          \
-        difftime(__sput.time.end, __sput.time.start), __sput.overall.ok,       \
-        __sput.overall.nok, failp,                                             \
-        (sput_get_return_value() == EXIT_SUCCESS) ? "SUCCESS" : "FAILURE");    \
+    fprintf(__sput.out, "# %lu check(s) in %lu suite(s) finished after %.2f "  \
+                        "second(s),\n"                                         \
+                        "#    %lu succeeded, %lu failed (%.2f%%)\n"            \
+                        "1..%lu\n",                                            \
+            __sput.overall.checks, __sput.overall.suites,                      \
+            difftime(__sput.time.end, __sput.time.start), __sput.overall.ok,   \
+            __sput.overall.nok, failp, __sput.overall.checks);                 \
   } while (0)
 
 #define sput_set_output_stream(_fp)                                            \
