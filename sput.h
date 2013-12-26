@@ -61,6 +61,8 @@ extern "C" {
 static struct {
   FILE *out;
   char initialized;
+  char padding[3];
+  float failp;
 
   struct {
     unsigned long checks;
@@ -162,18 +164,19 @@ static struct {
 
 #define sput_leave_suite()                                                     \
   do {                                                                         \
-    float failp = 0.0f;                                                        \
+    __sput.failp = 0.0f;                                                       \
                                                                                \
     _sput_die_unless_initialized();                                            \
     _sput_die_unless_suite_set();                                              \
                                                                                \
-    failp = __sput.suite.checks                                                \
-                ? (float)((__sput.suite.nok * 100.0) / __sput.suite.checks)    \
-                : 0.0f;                                                        \
+    __sput.failp =                                                             \
+        __sput.suite.checks                                                    \
+            ? (float)((__sput.suite.nok * 100.0) / __sput.suite.checks)        \
+            : 0.0f;                                                            \
                                                                                \
-    fprintf(__sput.out,                                                        \
-            "# suite: %lu check(s), %lu ok, %lu failed (%.2f%%)\n",            \
-            __sput.suite.checks, __sput.suite.ok, __sput.suite.nok, failp);    \
+    fprintf(                                                                   \
+        __sput.out, "# suite: %lu check(s), %lu ok, %lu failed (%.2f%%)\n",    \
+        __sput.suite.checks, __sput.suite.ok, __sput.suite.nok, __sput.failp); \
                                                                                \
     __sput.overall.checks += __sput.suite.checks;                              \
     __sput.overall.ok += __sput.suite.ok;                                      \
@@ -200,7 +203,7 @@ static struct {
 
 #define sput_finish_testing()                                                  \
   do {                                                                         \
-    float failp = 0.0f;                                                        \
+    __sput.failp = 0.0f;                                                       \
                                                                                \
     _sput_die_unless_initialized();                                            \
                                                                                \
@@ -208,7 +211,7 @@ static struct {
       sput_leave_suite();                                                      \
     }                                                                          \
                                                                                \
-    failp =                                                                    \
+    __sput.failp =                                                             \
         __sput.overall.checks                                                  \
             ? (float)((__sput.overall.nok * 100.0) / __sput.overall.checks)    \
             : 0.0f;                                                            \
@@ -221,7 +224,7 @@ static struct {
                         "1..%lu\n",                                            \
             __sput.overall.checks, __sput.overall.suites,                      \
             difftime(__sput.time.end, __sput.time.start), __sput.overall.ok,   \
-            __sput.overall.nok, failp, __sput.overall.checks);                 \
+            __sput.overall.nok, __sput.failp, __sput.overall.checks);          \
   } while (0)
 
 #define sput_set_output_stream(_fp)                                            \
